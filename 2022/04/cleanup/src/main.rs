@@ -4,15 +4,15 @@ use std::ops::RangeInclusive;
 fn main() {
     let filename = "input.txt";
     let file = fs::read_to_string(filename).expect("Could not read file {file_path}");
-    let lines = file.trim().split("\n").collect::<Vec<&str>>();
+    let lines = file.trim().split('\n').collect::<Vec<&str>>();
 
     let mut num_contained = 0;
     let mut num_overlap = 0;
 
     for line in lines {
         let line = line
-            .split(",")
-            .flat_map(|x| x.split("-"))
+            .split(',')
+            .flat_map(|x| x.split('-'))
             .map(|x| x.parse::<i32>().unwrap())
             .collect::<Vec<i32>>();
 
@@ -24,10 +24,8 @@ fn main() {
             if first.start() <= second.start() && first.end() >= second.end() {
                 num_contained += 1;
             }
-        } else {
-            if first.start() >= second.start() && first.end() <= second.end() {
-                num_contained += 1;
-            }
+        } else if first.start() >= second.start() && first.end() <= second.end() {
+            num_contained += 1;
         }
 
         // Overlaps
