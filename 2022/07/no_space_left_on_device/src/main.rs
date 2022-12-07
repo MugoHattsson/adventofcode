@@ -3,66 +3,48 @@ use std::{collections::HashMap, fs};
 fn main() {
     let filename = "input.txt";
     let file = fs::read_to_string(filename).expect("Could not read file {file_path}");
-    let lines = file.trim().split("\n").collect::<Vec<&str>>();
+    let lines = file.trim().split('\n').collect::<Vec<&str>>();
 
     let mut dir_size = HashMap::<Vec<&str>, i32>::new();
-    let mut root: Vec<&str> = Vec::new();
+    let mut path: Vec<&str> = Vec::new();
 
     for line in lines {
-        let line: Vec<_> = line.split(' ').collect();
-        let _ = match line[..] {
-            ["$", "cd", ".."] => root.pop().unwrap(),
-            ["$", "cd", p] => {
-                root.push(p);
-                continue;
+        let line = line.split(' ').collect::<Vec<&str>>();
+
+        if line == ["$", "cd", ".."] {
+            path.pop();
+        } else if line.len() == 3 {
+            path.push(line[2]);
+        } else if line.len() == 2 && line[0] != "$" && line[0] != "dir" {
+            // Increase size of directory
+            let size = line[0].parse::<i32>().unwrap();
+            *dir_size.entry(path.to_owned()).or_default() += size;
+
+            //Increase size of all parent directories
+            let mut parent_path = path.split_last().unwrap().1.to_vec();
+
+            while !parent_path.is_empty() {
+                *dir_size.entry(parent_path.to_owned()).or_default() += size;
+                parent_path.pop();
             }
-            ["$", "ls"] => continue,
-            ["dir", _] => continue,
-            [size, _] => {
-                let size = size.parse::<i32>().unwrap();
-                if dir_size.contains_key(&root) {
-                    let mut temp = *dir_size.get(&root).unwrap();
-                    temp += size;
-                    dir_size.insert(root.clone(), temp);
-                } else {
-                    dir_size.insert(root.clone(), size);
-                }
-
-                let mut path = root.clone();
-                path.pop();
-
-                while !path.is_empty() {
-                    if dir_size.contains_key(&path) {
-                        let mut temp = *dir_size.get(&path).unwrap();
-                        temp += size;
-                        dir_size.insert(path.clone(), temp);
-                    } else {
-                        dir_size.insert(path.clone(), size);
-                    }
-                    path.pop();
-                }
-
-                continue;
-            }
-            _ => continue,
-        };
+        }
     }
 
     let sizes = dir_size.iter().map(|(_, v)| *v).collect::<Vec<i32>>();
 
     println!(
         "Task 1 sum: {}",
-        sizes.iter().filter(|v| **v <= 100000).sum::<i32>()
+        sizes.iter().filter(|size| **size <= 100_000).sum::<i32>()
     );
 
-    let free = 70_000_000 - dir_size.get(&vec!["/"]).unwrap();
-    println!("Free space available: {free}");
+    let free_space = 70_000_000 - dir_size.get(&vec!["/"]).unwrap();
+    println!("Free space available: {free_space}");
 
     println!(
         "Freeing size of: {}",
         sizes
             .iter()
-            .filter(|v| **v + free >= 30_000_000)
+            .filter(|size| **size + free_space >= 30_000_000)
             .min()
             .unwrap()
     );
