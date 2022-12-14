@@ -35,14 +35,11 @@ fn neighbours(pos: (usize, usize), num_rows: usize, num_cols: usize) -> Vec<(usi
     .collect()
 }
 
-fn path_steps(pred: &Vec<Vec<Option<(usize, usize)>>>, end: (usize, usize)) -> usize {
+fn path_steps(pred: &[Vec<Option<(usize, usize)>>], end: (usize, usize)) -> usize {
     let mut pos = pred[end.0][end.1];
     let mut count = 0;
-    loop {
-        match pos {
-            Some((r, c)) => pos = pred[r][c],
-            None => break,
-        }
+    while let Some((r, c)) = pos {
+        pos = pred[r][c];
         count += 1;
     }
     count
@@ -118,7 +115,7 @@ fn main() {
         paths
             .iter()
             .filter(|p| p.is_some())
-            .map(|p| p.unwrap())
+            .flatten()
             .min()
             .unwrap()
     );
